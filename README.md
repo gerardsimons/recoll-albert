@@ -29,4 +29,11 @@ This plugin was developed and tested with `Recoll 1.26.3 + Xapian 1.4.14` on Ubu
 If the above is working correctly this Python plugin should be able to connect to the Recoll database and query for 
 results. 
 
+Either copy the folder recoll to your 
+
+
+## Documentation
+
+
+
 
