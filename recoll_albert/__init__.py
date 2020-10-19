@@ -13,7 +13,7 @@ import albertv0 as v0
 __iid__ = "PythonInterface/v0.2"
 __prettyname__ = "Recoll"
 __version__ = "0.1.0"
-__trigger__ = "rc "
+# __trigger__ = "rc "
 __author__ = "Gerard Simons"
 __dependencies__ = []
 __homepage__ = "https://github.com/gerardsimons/recoll-albert/blob/master/recoll/recoll"
@@ -24,6 +24,13 @@ cache_path = Path(v0.cacheLocation()) / "recoll"
 config_path = Path(v0.configLocation()) / "recoll"
 data_path = Path(v0.dataLocation()) / "recoll"
 dev_mode = True
+
+# String definitions
+OPEN_WITH_DEFAULT_APP = "Open with default application"
+REVEAL_IN_FILE_BROWSER = "Reveal in file browser"
+OPEN_TERMINAL_AT_THIS_PATH = "Open terminal at this path"
+COPY_FILE_CLIPBOARD = "Copy file to clipboard"
+COPY_PATH_CLIPBOARD = "Copy path to clipboard"
 
 # plugin main functions -----------------------------------------------------------------------
 
@@ -65,11 +72,12 @@ def path_from_url(url):
 
 def get_open_dir_action(dir):
     if platform == "linux" or platform == "linux2":
-        return v0.ProcAction(text="Open Containing Directory", commandline=["xdg-open", dir])
+        return v0.ProcAction(text=REVEAL_IN_FILE_BROWSER, commandline=["xdg-open", dir])
     elif platform == "darwin":
-        return v0.ProcAction(text="Open Containing Directory", commandline=["open", dir])
-    elif platform == "win32":
-        return None # TODO: No idea how to do this on Windows
+        return v0.ProcAction(text=REVEAL_IN_FILE_BROWSER, commandline=["open", dir])
+    elif platform == "win32": # From https://stackoverflow.com/a/2878744/916382
+        return v0.FuncAction(text=REVEAL_IN_FILE_BROWSER, callable=lambda : os.startfile(dir))
+
 
 
 def recoll_docs_as_items(docs):
@@ -83,6 +91,7 @@ def recoll_docs_as_items(docs):
 
     duplicates = [k for k in url_count.keys() if url_count[k] > 1]
     # Merge duplicate results, this might happen becase it actually consists of more than 1 file, like an epub
+    # We adopt the relevancy rating of the max one
     for dup in duplicates:
         # Just take the one with the highest relevancy
         best_doc = None
@@ -102,19 +111,24 @@ def recoll_docs_as_items(docs):
         dir_open = get_open_dir_action(dir)
 
         if path:
-            actions = [
-                    v0.UrlAction("Open File", doc.url),
-                    # NOTE: Termaction requires a commandline arg, if you pass it empty list nothing happens, so we give it empty string
-                    v0.TermAction(text="Open Terminal at Directory", commandline=[""], behavior=v0.TermAction.CloseBehavior.DoNotClose, cwd=dir)  # optional
-            ]
+            actions = [v0.UrlAction(OPEN_WITH_DEFAULT_APP, doc.url)]
             if dir_open:
                 actions.append(dir_open)
-            actions.append(v0.ClipAction("Copy Path", path))
+
+            actions.extend([
+                # NOTE: Termaction requires a commandline arg, if you pass it empty list nothing happens, so we give it empty string
+                v0.TermAction(text=OPEN_TERMINAL_AT_THIS_PATH, commandline=[""],
+                          behavior=v0.TermAction.CloseBehavior.DoNotClose, cwd=dir),
+                # IMPORTANT: FIXME: it should be only read when the user clicks it
+                # v0.ClipAction(COPY_FILE_CLIPBOARD, open(path, 'rb').read()),
+                v0.ClipAction(COPY_PATH_CLIPBOARD, path)])
+
+            # Add the item
             items.append(v0.Item(
                 id=__prettyname__,
                 icon=icon_path, # Get file icon?! How does the file extension do it?
                 text=doc.filename,
-                subtext=path,
+                subtext=dir,
                 completion="",
                 actions=actions
             ))
@@ -124,7 +138,6 @@ def recoll_docs_as_items(docs):
 def handleQuery(query) -> list:
     """Hook that is called by albert with *every new keypress*."""  # noqa
     results = []
-    # print("Query:", query.string)
 
     try:
         # be backwards compatible with v0.2
@@ -136,7 +149,6 @@ def handleQuery(query) -> list:
             return results_setup
 
         docs = query_recoll(query.string)
-        # print(f"Recoll query {query.string} returned {len(docs)} results: ", ",".join([str(x.rcludi) for x in docs]))
         results = recoll_docs_as_items(docs)
     except Exception:  # user to report error
         if dev_mode:  # let exceptions fly!

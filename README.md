@@ -49,17 +49,20 @@ or exclusion of a specific term). See Recoll user manual on how these work.
 
 ### Actions
 
-Currently there are four actions associated to this plugin:
+Currently there are five actions associated to this plugin. The actions are identical to the default `FileExtension` 
+of Albert (the one that matches queries with filenames)
 
-* **Open File** (default action): Simply open the file with URLAction. This should open whatever application is registered 
+* **Open with default application** (default action): Simply open the file with URLAction. This should open whatever application is registered 
 to handle this type of file
-* **Open Terminal at Directory**: Open a new terminal window with its current working directory set to the path
-* **Open Containing Directory**: Open the directory of the file. This currently only works on Mac and Linux
-* **Copy Path**: Copy the full absolute path to the file as returned by Recoll to the clipboard 
+* **Reveal in file browser**: Open the directory of the file. This currently only works on Mac and Linux
+* **Open terminal at this path**: Open a new terminal window with its current working directory set to the path
+* **Copy path to clipboard**: Copy the full absolute path to the file as returned by Recoll to the clipboard
+* **Copy file to clipboard**: Copy the file's contents to the clipboard 
+## Known Issues / TODOs
 
-## Known Issues
-
-* Multiple returns for same file
+* Show a little context for the match.
+* Icons for the files it found
+* Copy file contents should be copied lazily (this might require a change in Albert's clipaction)
 
 
 
