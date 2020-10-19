@@ -39,11 +39,28 @@ Assuming your Recoll is working properly, we can go ahead and install the Python
 Run the install script install.sh to copy the plugin folder to Albert. Then make sure the plug-in is enabled in Albert's
 settings under Python.
 
-## Documentation
+## Usage
 
-TODO
+Now that it's supposedly working let's go through the usage.
+
+The string you enter in Albert is passed onto Recoll exactly as you enter it. Meaning you can also use the more 
+advanced query language of Recoll for example by using logical operators (`OR`, `AND` and the minus sign `-` for negation 
+or exclusion of a specific term). 
+
+### Actions
+
+I have assocated four actions to this plugin:
+
+* Open File (default action): Simply open the file with URLAction. This should open whatever application is registered 
+to handle this type of file
+* Open Terminal at Directory: Open a new terminal window with its current working directory set to the path
+* Open Containing Directory: Open the directory of the file. This currently only works on Mac and Linux
+* Copy Path: Copy the full absolute path to the file as returned by Recoll to the clipboard 
 
 ## Known Issues
+
+* Multiple returns for same file
+
 
 
 

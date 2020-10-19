@@ -1,15 +1,11 @@
 """Recoll."""
-
-
-import sys
+import os
+from sys import platform
 import traceback
 from pathlib import Path
 
 # TODO: Check if this fails and return a more comprehensive error message for the user
 from recoll import recoll
-
-with open('/home/gerard/Desktop/ALBERT_RECALL_EVIDENCE', 'w') as fp:
-    fp.write("Hello, There")
 
 import albertv0 as v0
 
@@ -30,18 +26,12 @@ dev_mode = True
 
 # plugin main functions -----------------------------------------------------------------------
 
-
 def initialize():
     """Called when the extension is loaded (ticked in the settings) - blocking."""
 
     # create plugin locations
     for p in (cache_path, config_path, data_path):
         p.mkdir(parents=False, exist_ok=True)
-
-
-def finalize():
-    pass
-
 
 def query_recoll(query_str, max_results=10, max_chars=80, context_words=4):
     """
@@ -51,17 +41,13 @@ def query_recoll(query_str, max_results=10, max_chars=80, context_words=4):
     :return:
     """
     if not query_str:
-        print("Empty query string, terminating.")
         return []
+
     db = recoll.connect()
     db.setAbstractParams(maxchars=max_chars, contextwords=context_words)
     query = db.query()
-    print("query_str=", query_str)
     nres = query.execute(query_str)
-    # names = list(map(lambda x: x[0], nres.description))
-    # print(names)
     docs = []
-    # print("Result count: ", nres)
     if nres > max_results:
         nres = max_results
     for i in range(nres):
@@ -70,6 +56,20 @@ def query_recoll(query_str, max_results=10, max_chars=80, context_words=4):
 
     return docs
 
+def path_from_url(url):
+    if not url.startswith('file://'):
+        return
+    else:
+        return url.replace("file://", "")
+
+def get_open_dir_action(dir):
+    if platform == "linux" or platform == "linux2":
+        return v0.ProcAction(text="Open Containing Directory", commandline=["xdg-open", dir])
+    elif platform == "darwin":
+        return v0.ProcAction(text="Open Containing Directory", commandline=["open", dir])
+    elif platform == "win32":
+        return None # TODO: No idea how to do this on Windows
+
 
 def recoll_docs_as_items(docs):
     """Return an item - ready to be appended to the items list and be rendered by Albert."""
@@ -77,28 +77,36 @@ def recoll_docs_as_items(docs):
     items = []
 
     for doc in docs:
-        # try:
-        items.append(v0.Item(
-            id=__prettyname__,
-            icon=icon_path,
-            text=doc.filename,
-            subtext=doc.url,
-            completion="",
-            actions=[
-                v0.UrlAction("Open in whatever URL handler", doc.url),
-                # v0.UrlAction("Open in xkcd.com", "https://www.xkcd.com/"),
-                v0.ClipAction("Copy URL", f"https://www.xkcd.com/"),
-            ],
-        ))
+        path = path_from_url(doc.url) # The path is not always given as an attribute by recoll doc
+        dir = os.path.dirname(path)
+        dir_open = get_open_dir_action(dir)
+
+        if path:
+
+            actions = [
+                    v0.UrlAction("Open File", doc.url),
+                    # NOTE: Termaction requires a commandline arg, if you pass it empty list nothing happens, so we give it empty string
+                    v0.TermAction(text="Open Terminal at Directory", commandline=[""], behavior=v0.TermAction.CloseBehavior.DoNotClose, cwd=dir)  # optional
+            ]
+            if dir_open:
+                actions.append(dir_open)
+            actions.append(v0.ClipAction("Copy Path", path))
+            items.append(v0.Item(
+                id=__prettyname__,
+                icon=icon_path, # Get file icon?! How does the file extension do it?
+                text=doc.filename,
+                subtext=path,
+                completion="",
+                actions=actions
+            ))
     return items
 
 
 def handleQuery(query) -> list:
     """Hook that is called by albert with *every new keypress*."""  # noqa
     results = []
-    print("Query:", query.string)
+    # print("Query:", query.string)
 
-    # if query.isTriggered:
     try:
         # be backwards compatible with v0.2
         if "disableSort" in dir(query):
@@ -108,7 +116,6 @@ def handleQuery(query) -> list:
         if results_setup:
             return results_setup
 
-        # modify this...
         docs = query_recoll(query.string)
         # print(f"Recoll query {query.string} returned {len(docs)} results: ", ",".join([str(x.rcludi) for x in docs]))
         results = recoll_docs_as_items(docs)
@@ -136,34 +143,6 @@ def handleQuery(query) -> list:
 
 
 # supplementary functions ---------------------------------------------------------------------
-def notify(
-     msg: str, app_name: str=__prettyname__, image=str(icon_path),
-):
-    Notify.init(app_name)
-    n = Notify.Notification.new(app_name, msg, image)
-    n.show()
-
-
-
-def sanitize_string(s: str) -> str:
-    return s.replace("<", "&lt;")
-
-
-
-def get_as_subtext_field(field, field_title=None) -> str:
-    """Get a certain variable as part of the subtext, along with a title for that variable."""
-    s = ""
-    if field:
-        s = f"{field} | "
-    else:
-        return ""
-
-    if field_title:
-        s = f"{field_title}: " + s
-
-    return s
-
-
 def save_data(data: str, data_name: str):
     """Save a piece of data in the configuration directory."""
     with open(config_path / data_name, "w") as f:
