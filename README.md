@@ -15,7 +15,15 @@ For recent Ubuntu versions you should just be able to do
 This installs the binaries and the Python packages. Note that there is no way of pip install the Python packages as far as I know, which
 makes it a bit tricky to work within a virtualenv like you usually would.
 
-Then make sure you create an index of the files and directories you deem relevant. Follow the [indexing instructions](https://www.lesbonscomptes.com/recoll/usermanual/usermanual.html#RCL.INDEXING) in the Recoll User manual
+Make sure you create an index of the files and directories you deem relevant. 
+Follow the [indexing instructions](https://www.lesbonscomptes.com/recoll/usermanual/usermanual.html#RCL.INDEXING) 
+in the Recoll User manual, though I can offer one recommendation so you don't get spammed with too many non-relevant 
+results and improve indexing performance / time, and that is by making sure the hidden folders and files are not indexed.
+You can do that from the GUI by going to `Preferences > Index Configuration > Local Parameters` and adding `.*` or simply
+by including it in the .recoll/recoll.conf. Here is a oneliner for it : `echo "skippedNames+ = .*" >> .recoll/recoll.conf` 
+
+Then go ahead an run the indexing from the GUI by clicking `File > Create Index` or from commandline by issuing something like 
+`recollindex -r ~` if you would like to index everything recursively from your home folder.
 
 If the indexing worked properly you should be able to issue a query either from the GUI search bar or 
 from command line: `recoll -t <query>`. It's worth trying this on a known file's contents and observing the results
@@ -26,13 +34,17 @@ This plugin was developed and tested with `Recoll 1.26.3 + Xapian 1.4.14` on Ubu
 
 ## Installation
 
-If the above is working correctly this Python plugin should be able to connect to the Recoll database and query for 
-results. 
+Assuming your Recoll is working properly, we can go ahead and install the Python plugin
 
-Either copy the folder recoll to your 
-
+Run the install script install.sh to copy the plugin folder to Albert. Then make sure the plug-in is enabled in Albert's
+settings under Python.
 
 ## Documentation
+
+TODO
+
+## Known Issues
+
 
 
 
