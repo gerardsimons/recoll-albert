@@ -1,8 +1,10 @@
 # recoll-albert
-A Python plugin for Albert that queries Recoll
+A Python plugin for Albert that queries Recoll+Xapian
 
 ## Motivation
-Coming from Mac OS I really missed the Spotlight feature that would display files containing certain terms. Albert provides matches based on file names but not yet on file content. This plugin aims to do just that using Recoll and Xapian for the indexing and subsequent retrieval of documents.
+Coming from Mac OS I really missed the Spotlight feature that would display files containing certain terms. 
+Albert provides matches based on file names but not yet on file content. This plugin aims to do just that using 
+Recoll and Xapian for the indexing and subsequent retrieval of documents.
 
 ## Prerequisites
 
@@ -36,26 +38,24 @@ This plugin was developed and tested with `Recoll 1.26.3 + Xapian 1.4.14` on Ubu
 
 Assuming your Recoll is working properly, we can go ahead and install the Python plugin
 
-Run the install script install.sh to copy the plugin folder to Albert. Then make sure the plug-in is enabled in Albert's
+Run the install script `install.sh` to copy the plugin folder to Albert. Then make sure the plug-in is enabled in Albert's
 settings under Python.
 
 ## Usage
 
-Now that it's supposedly working let's go through the usage.
-
-The string you enter in Albert is passed onto Recoll exactly as you enter it. Meaning you can also use the more 
+The string you enter in Albert is passed onto Recoll exactly as you enter it, meaning you can also use the more 
 advanced query language of Recoll for example by using logical operators (`OR`, `AND` and the minus sign `-` for negation 
-or exclusion of a specific term). 
+or exclusion of a specific term). See Recoll user manual on how these work.
 
 ### Actions
 
-I have assocated four actions to this plugin:
+Currently there are four actions associated to this plugin:
 
-* Open File (default action): Simply open the file with URLAction. This should open whatever application is registered 
+* **Open File** (default action): Simply open the file with URLAction. This should open whatever application is registered 
 to handle this type of file
-* Open Terminal at Directory: Open a new terminal window with its current working directory set to the path
-* Open Containing Directory: Open the directory of the file. This currently only works on Mac and Linux
-* Copy Path: Copy the full absolute path to the file as returned by Recoll to the clipboard 
+* **Open Terminal at Directory**: Open a new terminal window with its current working directory set to the path
+* **Open Containing Directory**: Open the directory of the file. This currently only works on Mac and Linux
+* **Copy Path**: Copy the full absolute path to the file as returned by Recoll to the clipboard 
 
 ## Known Issues
 
