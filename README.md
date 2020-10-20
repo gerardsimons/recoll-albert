@@ -47,6 +47,10 @@ The string you enter in Albert is passed onto Recoll exactly as you enter it, me
 advanced query language of Recoll for example by using logical operators (`OR`, `AND` and the minus sign `-` for negation 
 or exclusion of a specific term). See Recoll user manual on how these work.
 
+By default the plugin is triggerless, meaning it will always try to match whatever is in the search bar for recoll hits.
+If you prefer to have a trigger you can uncomment the `__trigger__ = "rc "` line so that it triggers only when you type 
+`rc` first followed by whatever query should be sent to Recoll.
+
 ### Actions
 
 Currently there are five actions associated to this plugin. The actions are identical to the default `FileExtension` 
@@ -58,6 +62,7 @@ to handle this type of file
 * **Open terminal at this path**: Open a new terminal window with its current working directory set to the path
 * **Copy path to clipboard**: Copy the full absolute path to the file as returned by Recoll to the clipboard
 * **Copy file to clipboard**: Copy the file's contents to the clipboard 
+
 ## Known Issues / TODOs
 
 * Show a little context for the match.

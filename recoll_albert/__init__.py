@@ -13,13 +13,12 @@ import albertv0 as v0
 __iid__ = "PythonInterface/v0.2"
 __prettyname__ = "Recoll"
 __version__ = "0.1.0"
-# __trigger__ = "rc "
+# __trigger__ = "rc " # Use this if you want it to be only triggered by rc <query>
 __author__ = "Gerard Simons"
 __dependencies__ = []
 __homepage__ = "https://github.com/gerardsimons/recoll-albert/blob/master/recoll/recoll"
 
 icon_path = str(Path(__file__).parent / "recoll")
-
 cache_path = Path(v0.cacheLocation()) / "recoll"
 config_path = Path(v0.configLocation()) / "recoll"
 data_path = Path(v0.dataLocation()) / "recoll"
@@ -41,7 +40,7 @@ def initialize():
     for p in (cache_path, config_path, data_path):
         p.mkdir(parents=False, exist_ok=True)
 
-def query_recoll(query_str, max_results=10, max_chars=80, context_words=4):
+def query_recoll(query_str, max_results=10, max_chars=80, context_words=4, verbose=False):
     """
     Query recoll index for simple query string and return the filenames in order of relevancy
     :param query_str:
@@ -64,13 +63,15 @@ def query_recoll(query_str, max_results=10, max_chars=80, context_words=4):
 
     return docs
 
-def path_from_url(url):
+
+def path_from_url(url: str) -> str:
     if not url.startswith('file://'):
-        return
+        return None
     else:
         return url.replace("file://", "")
 
-def get_open_dir_action(dir):
+
+def get_open_dir_action(dir: str):
     if platform == "linux" or platform == "linux2":
         return v0.ProcAction(text=REVEAL_IN_FILE_BROWSER, commandline=["xdg-open", dir])
     elif platform == "darwin":
@@ -79,8 +80,19 @@ def get_open_dir_action(dir):
         return v0.FuncAction(text=REVEAL_IN_FILE_BROWSER, callable=lambda : os.startfile(dir))
 
 
+def doc_to_icon_path(doc) -> str:
+    """ Attempts to convert a mime type to a text string that is accepted by """
+    mime_str = getattr(doc, "mtype", None)
+    if not mime_str:
+        return v0.iconLookup("unknown")
+    mime_str = mime_str.replace("/", "-")
+    icon_path = v0.iconLookup(mime_str)
+    if not icon_path:
+        icon_path = v0.iconLookup("unknown")
+    return icon_path
 
-def recoll_docs_as_items(docs):
+
+def recoll_docs_as_items(docs: list):
     """Return an item - ready to be appended to the items list and be rendered by Albert."""
 
     items = []
@@ -110,6 +122,9 @@ def recoll_docs_as_items(docs):
         dir = os.path.dirname(path)
         dir_open = get_open_dir_action(dir)
 
+        result = v0.iconLookup('text/plain')
+        print("iconLookup", str(result))
+
         if path:
             actions = [v0.UrlAction(OPEN_WITH_DEFAULT_APP, doc.url)]
             if dir_open:
@@ -119,14 +134,14 @@ def recoll_docs_as_items(docs):
                 # NOTE: Termaction requires a commandline arg, if you pass it empty list nothing happens, so we give it empty string
                 v0.TermAction(text=OPEN_TERMINAL_AT_THIS_PATH, commandline=[""],
                           behavior=v0.TermAction.CloseBehavior.DoNotClose, cwd=dir),
-                # IMPORTANT: FIXME: it should be only read when the user clicks it
-                # v0.ClipAction(COPY_FILE_CLIPBOARD, open(path, 'rb').read()),
+                # IMPORTANT: FIXME: it should be only read when the user clicks it I feel. A lot of IO could happen just to create these actions
+                v0.ClipAction(COPY_FILE_CLIPBOARD, open(path, 'rb').read()),
                 v0.ClipAction(COPY_PATH_CLIPBOARD, path)])
 
             # Add the item
             items.append(v0.Item(
                 id=__prettyname__,
-                icon=icon_path, # Get file icon?! How does the file extension do it?
+                icon=doc_to_icon_path(doc),
                 text=doc.filename,
                 subtext=dir,
                 completion="",
@@ -140,6 +155,8 @@ def handleQuery(query) -> list:
     results = []
 
     try:
+        if __trigger__  and not query.isTriggered:
+            return []
         # be backwards compatible with v0.2
         if "disableSort" in dir(query):
             query.disableSort()
@@ -196,3 +213,9 @@ def setup(query):
 
     results = []
     return results
+
+# In case the __trigger__ was not set at all we set it to the empty string
+try:
+    __trigger__
+except NameError:
+    __trigger__ = ""
