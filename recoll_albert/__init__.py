@@ -97,26 +97,6 @@ def recoll_docs_as_items(docs: list):
 
     items = []
 
-    # First we find duplicates
-    urls = [x.url for x in docs]
-    url_count = Counter(urls)
-
-    duplicates = [k for k in url_count.keys() if url_count[k] > 1]
-    # Merge duplicate results, this might happen becase it actually consists of more than 1 file, like an epub
-    # We adopt the relevancy rating of the max one
-    for dup in duplicates:
-        # Just take the one with the highest relevancy
-        best_doc = None
-        best_rating = -1
-        for doc in [x for x in docs if x.url == dup]:
-            rating = float(doc.relevancyrating.replace("%", ""))
-            if rating > best_rating:
-                best_doc = doc
-                best_rating = rating
-
-        docs = [x for x in docs if x.url != dup]
-        docs.append(best_doc)
-
     for doc in docs:
         path = path_from_url(doc.url) # The path is not always given as an attribute by recoll doc
         dir = os.path.dirname(path)
