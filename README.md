@@ -51,6 +51,9 @@ By default the plugin is triggerless, meaning it will always try to match whatev
 If you prefer to have a trigger you can uncomment the `__trigger__ = "rc "` line so that it triggers only when you type 
 `rc` first followed by whatever query should be sent to Recoll.
 
+Note also the boolean flag `remove_duplicates` which will remove possible duplicate hits inside of archives that share
+the same URL. By default this is set to True.
+
 ### Actions
 
 Currently there are five actions associated to this plugin. The actions are identical to the default `FileExtension` 

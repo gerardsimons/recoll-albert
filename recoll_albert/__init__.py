@@ -24,6 +24,10 @@ config_path = Path(v0.configLocation()) / "recoll"
 data_path = Path(v0.dataLocation()) / "recoll"
 dev_mode = True
 
+# If set to to true it removes duplicate documents hits that share the same URL, such as epubs or other archives.
+# Note that this means the number of results returned may be different from the actual recoll results
+remove_duplicates = True
+
 # String definitions
 OPEN_WITH_DEFAULT_APP = "Open with default application"
 REVEAL_IN_FILE_BROWSER = "Reveal in file browser"
@@ -92,18 +96,46 @@ def doc_to_icon_path(doc) -> str:
     return icon_path
 
 
+def remove_duplicate_docs(docs: list):
+    """
+    Removes Recoll docs that have the same URL but actually refer to different files, for example an epub file
+    which contains HTML files will have multiple docs for each but they all refer to the same epub file.
+    :param docs: the original list of documents
+    :return: the same docs param but with the docs removed that share the same URL attribute
+    """
+    urls = [x.url for x in docs]
+    url_count = Counter(urls)
+
+    duplicates = [k for k in url_count.keys() if url_count[k] > 1]
+    # Merge duplicate results, this might happen becase it actually consists of more than 1 file, like an epub
+    # We adopt the relevancy rating of the max one
+    for dup in duplicates:
+        # Just take the one with the highest relevancy
+        best_doc = None
+        best_rating = -1
+        for doc in [x for x in docs if x.url == dup]:
+            rating = float(doc.relevancyrating.replace("%", ""))
+            if rating > best_rating:
+                best_doc = doc
+                best_rating = rating
+
+        docs = [x for x in docs if x.url != dup]
+        docs.append(best_doc)
+    return docs
+
 def recoll_docs_as_items(docs: list):
     """Return an item - ready to be appended to the items list and be rendered by Albert."""
 
     items = []
 
+    # First we find duplicates if so configured
+    if remove_duplicates:
+        docs = remove_duplicate_docs(docs)
+
     for doc in docs:
         path = path_from_url(doc.url) # The path is not always given as an attribute by recoll doc
         dir = os.path.dirname(path)
         dir_open = get_open_dir_action(dir)
-
-        result = v0.iconLookup('text/plain')
-        print("iconLookup", str(result))
 
         if path:
             actions = [v0.UrlAction(OPEN_WITH_DEFAULT_APP, doc.url)]
