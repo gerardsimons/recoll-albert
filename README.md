@@ -22,7 +22,9 @@ Follow the [indexing instructions](https://www.lesbonscomptes.com/recoll/userman
 in the Recoll User manual, though I can offer one recommendation so you don't get spammed with too many non-relevant 
 results and improve indexing performance / time, and that is by making sure the hidden folders and files are not indexed.
 You can do that from the GUI by going to `Preferences > Index Configuration > Local Parameters` and adding `.*` or simply
-by including it in the .recoll/recoll.conf. Here is a oneliner for it : `echo "skippedNames+ = .*" >> .recoll/recoll.conf` 
+by including it in the .recoll/recoll.conf. Here is a oneliner for it : 
+
+`echo "skippedNames+ = .*" >> ~/.recoll/recoll.conf` 
 
 Then go ahead an run the indexing from the GUI by clicking `File > Create Index` or from commandline by issuing something like 
 `recollindex -r ~` if you would like to index everything recursively from your home folder.
